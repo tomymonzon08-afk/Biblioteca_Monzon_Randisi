@@ -1,0 +1,29 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+
+# Build
+bin/
+obj/
+out/
+build/
+release/
+debug/
+
+# NuGet
+packages/
+*.nupkg
+*.nuspec
+
+# Logs y temporales
+*.log
+*.tmp
+*.cache
+
+#DBBrowser
+*.sqbpro
