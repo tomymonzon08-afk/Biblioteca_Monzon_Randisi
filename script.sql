@@ -82,3 +82,70 @@ CREATE TABLE "Reserva" (
 	FOREIGN KEY("Libro_id") REFERENCES "Libro"("ISBN") ON DELETE CASCADE,
 	FOREIGN KEY("Socio_id") REFERENCES "Socio"("NroSocio") ON DELETE CASCADE
 );
+
+INSERT INTO TipoSocio (id, descripcion, MaxLibrosSimutaneos, DiasPrestamo, MultaPorDia)
+VALUES
+(1, 'Comun', 3, 7, 150),
+(2, 'Estudiante', 5, 14, 75),
+(3, 'Docente', 8, 30, 50);
+
+INSERT INTO Estado_prestamo (id, descripcion)
+VALUES
+(1, 'Activo'),
+(2, 'Devuelto'),
+(3, 'Vencido');
+
+INSERT INTO Estado_reserva (id, descripcion)
+VALUES
+(1, 'Pendiente'),
+(2, 'Cumplida'),
+(3, 'Cancelada');
+
+INSERT INTO Generos (genero_id, nombre)
+VALUES
+(1, 'Ciencia Ficcion'),
+(2, 'Fantasia'),
+(3, 'Novela'),
+(4, 'Historia'),
+(5, 'Programacion');
+
+INSERT INTO Libro (ISBN, Titulo, Autor, CantCopias)
+VALUES
+('978950001', 'El Aleph', 'Jorge Luis Borges', 5),
+('978950002', '1984', 'George Orwell', 8),
+('978950003', 'Dune', 'Frank Herbert', 6),
+('978950004', 'Clean Code', 'Robert C. Martin', 4),
+('978950005', 'El Señor de los Anillos', 'J. R. R. Tolkien', 7);
+
+
+INSERT INTO Libros_Generos (libro_id, genero_id)
+VALUES
+('978950001', 3), -- El Aleph -> Novela
+('978950002', 1), -- 1984 -> Ciencia Ficcion
+('978950003', 1), -- Dune -> Ciencia Ficcion
+('978950004', 5), -- Clean Code -> Programacion
+('978950005', 2); -- El Señor de los Anillos -> Fantasia
+
+INSERT INTO Socio
+(NroSocio, Nombre, Apellido, Email, tipoSocio, activo)
+VALUES
+(1001, 'Juan', 'Perez', 'juan.perez@email.com', 1, 1),
+(1002, 'Maria', 'Gomez', 'maria.gomez@email.com', 2, 1),
+(1003, 'Carlos', 'Lopez', 'carlos.lopez@email.com', 3, 1),
+(1004, 'Ana', 'Martinez', 'ana.martinez@email.com', 2, 1),
+(1005, 'Pedro', 'Fernandez', 'pedro.fernandez@email.com', 1, 0);
+
+
+INSERT INTO Prestamo
+(Socio_id, Libro_id, FechaPrestamo, FechaVencimiento, FechaDevolucion, Estado)
+VALUES
+-- Activos
+(1001, '978950002', '2025-11-01', '2025-11-08', NULL, 1),
+(1002, '978950004', '2025-11-10', '2025-11-24', NULL, 1),
+
+-- Devuelto
+(1003, '978950001', '2025-10-01', '2025-10-31', '2025-10-28', 2),
+
+-- Vencidos
+(1004, '978950003', '2025-09-01', '2025-09-15', NULL, 3),
+(1005, '978950005', '2025-08-01', '2025-08-08', NULL, 3);
