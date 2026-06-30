@@ -5,14 +5,8 @@ namespace Biblioteca_Monzon_Randisi.Models;
 
 public class Prestamo
 {
-    [Key]
-    [Column(Order = 0)]
     public int SocioId { get; set; }
-
-    [Key]
-    [Column(Order = 1)]
     public string LibroId { get; set; } = string.Empty;
-
     public string FechaPrestamo { get; set; } = string.Empty;
     public string FechaVencimiento { get; set; } = string.Empty;
     public string? FechaDevolucion { get; set; }
