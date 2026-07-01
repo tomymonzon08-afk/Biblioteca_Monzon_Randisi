@@ -2,6 +2,7 @@
 using Biblioteca_Monzon_Randisi.Models;
 using Biblioteca_Monzon_Randisi.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace Biblioteca_Monzon_Randisi.UI;
 
@@ -32,7 +33,9 @@ public class ConsoleUI
             Console.WriteLine("6. Ver libros disponibles");
             Console.WriteLine("7. Ver libros más prestados");
             Console.WriteLine("8. Mostrar socios con multas pendientes");
-            Console.WriteLine("9. Salir");
+            Console.WriteLine("9. Mostrar prestamos vencidos");
+            Console.WriteLine("10. Mostrar disponibilidad de un libro"); 
+            Console.WriteLine("0. Salir");
             Console.Write("\nSeleccione una opción: ");
 
             var opcion = Console.ReadLine();
@@ -63,8 +66,22 @@ public class ConsoleUI
                 case "8":
                     MostrarSociosConMultasPendientes();
                     break;
-
-                case "11":
+                case "9":
+                    MostrarPrestamosVencidos();
+                    break;
+                case "10":
+                    Console.Write("Ingrese ISBN o título del libro: ");
+                    var isbnOTitulo = Console.ReadLine()?.Trim();
+                    if (!string.IsNullOrEmpty(isbnOTitulo))
+                    {
+                        MostrarDisponibilidadLibro(isbnOTitulo);
+                    }
+                    else
+                    {
+                        Console.WriteLine("ISBN o título inválido");
+                    }
+                    break;
+                case "0":
                     salir = true;
                     break;
                 default:
@@ -366,5 +383,74 @@ public class ConsoleUI
         }
 
         Console.WriteLine($"Total adeudado entre todos los socios: ${socios.Sum(s => s.Monto)}");
+    }
+
+    public static void MostrarPrestamosVencidos()
+    {
+        using var contexto = new BibliotecaContext();
+
+        string hoy = DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+        var vencidos = contexto.Prestamos
+            .Include(p => p.Socio)
+            .Include(p => p.Libro)
+            .Where(p => p.FechaDevolucion == null && p.FechaVencimiento.CompareTo(hoy) < 0)
+            .OrderBy(p => p.FechaVencimiento)
+            .ToList();
+
+        Console.Clear();
+        Console.WriteLine();
+        Console.WriteLine("=== PRÉSTAMOS VENCIDOS ===");
+
+        if (vencidos.Count == 0)
+        {
+            Console.WriteLine("No hay préstamos vencidos.");
+            return;
+        }
+
+        foreach (var p in vencidos)
+        {
+            int diasVencido = (DateTime.Today - DateTime.ParseExact(p.FechaVencimiento, "yyyy-MM-dd", CultureInfo.InvariantCulture)).Days;
+            Console.WriteLine($"Socio N° {p.SocioId} ({p.Socio.Nombre} {p.Socio.Apellido}) - " +
+                               $"Libro: {p.Libro.Titulo} [{p.LibroId}] - " +
+                               $"Vencía: {p.FechaVencimiento} - Días de atraso: {diasVencido}");
+        }
+    }
+    public static void MostrarDisponibilidadLibro(string isbnOTitulo)
+    {
+        using var contexto = new BibliotecaContext();
+
+        var libro = contexto.Libros
+            .Include(l => l.Prestamos)
+            .Include(l => l.Reservas)
+                .ThenInclude(r => r.EstadoNavigation)
+            .FirstOrDefault(l => l.ISBN == isbnOTitulo ||
+                                  l.Titulo.ToLower() == isbnOTitulo.ToLower());
+
+        Console.Clear();
+        Console.WriteLine();
+        Console.WriteLine("=== DISPONIBILIDAD DE LIBRO ===");
+
+        if (libro == null)
+        {
+            Console.WriteLine("No se encontró ningún libro con ese ISBN o título.");
+            return;
+        }
+
+        int prestamosActivos = libro.Prestamos.Count(p => p.FechaDevolucion == null);
+        int copiasDisponibles = libro.CantCopias - prestamosActivos;
+        if (copiasDisponibles < 0) copiasDisponibles = 0;
+
+        var reservasPendientes = libro.Reservas
+            .Where(r => r.EstadoNavigation.Descripcion.ToLower() == "pendiente")
+            .ToList();
+
+        Console.WriteLine($"Libro: {libro.Titulo} - {libro.Autor} [{libro.ISBN}]");
+        Console.WriteLine($"Copias totales: {libro.CantCopias}");
+        Console.WriteLine($"Copias prestadas actualmente: {prestamosActivos}");
+        Console.WriteLine($"Copias disponibles: {copiasDisponibles}");
+        Console.WriteLine(reservasPendientes.Count > 0
+            ? $"Reservas pendientes: {reservasPendientes.Count}"
+            : "No hay reservas pendientes.");
     }
 }
