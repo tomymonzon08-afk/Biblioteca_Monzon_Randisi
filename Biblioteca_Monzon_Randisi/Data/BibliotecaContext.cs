@@ -16,10 +16,11 @@ public class BibliotecaContext : DbContext
     public DbSet<EstadoReserva> EstadosReserva { get; set; }
     public DbSet<Multa> Multas { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        optionsBuilder.UseSqlite("Data Source=DBBiblioteca.db");
+        options.UseSqlite(@"Data Source=C:\Users\Estudiante\Documents\Politecnico general\Politecnico 6°\POO\Biblioteca_Monzon_Randisi\Biblioteca_Monzon_Randisi\DBBiblioteca.db");
     }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

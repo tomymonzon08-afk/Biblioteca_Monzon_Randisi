@@ -43,6 +43,7 @@ CREATE TABLE "TipoSocio" (
 CREATE TABLE "Multas" (
 	"Socio_id"	INTEGER NOT NULL,
 	"valor"	INTEGER NOT NULL,
+	"estado"	TEXT NOT NULL,
 	PRIMARY KEY("Socio_id"),
 	FOREIGN KEY("Socio_id") REFERENCES "Socio"("NroSocio") ON DELETE CASCADE
 );
