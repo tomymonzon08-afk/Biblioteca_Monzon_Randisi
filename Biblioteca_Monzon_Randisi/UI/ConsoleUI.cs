@@ -34,7 +34,8 @@ public class ConsoleUI
             Console.WriteLine("7. Ver libros más prestados");
             Console.WriteLine("8. Mostrar socios con multas pendientes");
             Console.WriteLine("9. Mostrar prestamos vencidos");
-            Console.WriteLine("10. Mostrar disponibilidad de un libro"); 
+            Console.WriteLine("10. Mostrar disponibilidad de un libro");
+            Console.WriteLine("11.Mostrar historial de un socio");
             Console.WriteLine("0. Salir");
             Console.Write("\nSeleccione una opción: ");
 
@@ -79,6 +80,17 @@ public class ConsoleUI
                     else
                     {
                         Console.WriteLine("ISBN o título inválido");
+                    }
+                    break;
+                case "11":
+                    Console.Write("Ingrese número de socio: ");
+                    if (int.TryParse(Console.ReadLine(), out int nroSocio))
+                    {
+                        MostrarHistorialSocio(nroSocio);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Número de socio inválido");
                     }
                     break;
                 case "0":
@@ -452,5 +464,64 @@ public class ConsoleUI
         Console.WriteLine(reservasPendientes.Count > 0
             ? $"Reservas pendientes: {reservasPendientes.Count}"
             : "No hay reservas pendientes.");
+    }
+    public static void MostrarHistorialSocio(int nroSocio)
+    {
+        using var contexto = new BibliotecaContext();
+
+        var socio = contexto.Socios
+            .Include(s => s.Prestamos)
+                .ThenInclude(p => p.Libro)
+            .Include(s => s.Prestamos)
+                .ThenInclude(p => p.EstadoNavigation)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.Libro)
+            .Include(s => s.Reservas)
+                .ThenInclude(r => r.EstadoNavigation)
+            .FirstOrDefault(s => s.NroSocio == nroSocio);
+
+        Console.WriteLine();
+        Console.WriteLine("=== HISTORIAL DE SOCIO ===");
+
+        if (socio == null)
+        {
+            Console.WriteLine("No se encontró ningún socio con ese número.");
+            return;
+        }
+
+        Console.WriteLine($"Socio N° {socio.NroSocio} - {socio.Nombre} {socio.Apellido} ({socio.Email})");
+
+        Console.WriteLine();
+        Console.WriteLine("--- Préstamos ---");
+        if (socio.Prestamos.Count == 0)
+        {
+            Console.WriteLine("Sin préstamos registrados.");
+        }
+        else
+        {
+            foreach (var p in socio.Prestamos.OrderByDescending(p => p.FechaPrestamo))
+            {
+                Console.WriteLine($"Libro: {p.Libro.Titulo} [{p.LibroId}] - " +
+                                   $"Pedido: {p.FechaPrestamo} - Vence: {p.FechaVencimiento} - " +
+                                   $"Devuelto: {p.FechaDevolucion ?? "No devuelto"} - " +
+                                   $"Estado: {p.EstadoNavigation.Descripcion}");
+            }
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("--- Reservas ---");
+        if (socio.Reservas.Count == 0)
+        {
+            Console.WriteLine("Sin reservas registradas.");
+        }
+        else
+        {
+            foreach (var r in socio.Reservas.OrderByDescending(r => r.FechaReserva))
+            {
+                Console.WriteLine($"Libro: {r.Libro.Titulo} [{r.LibroId}] - " +
+                                   $"Reservado: {r.FechaReserva} - " +
+                                   $"Estado: {r.EstadoNavigation.Descripcion}");
+            }
+        }
     }
 }
