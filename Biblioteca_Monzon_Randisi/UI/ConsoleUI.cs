@@ -30,7 +30,8 @@ public class ConsoleUI
             Console.WriteLine("4. Reservar libro");
             Console.WriteLine("5. Ver información de socio");
             Console.WriteLine("6. Ver libros disponibles");
-            Console.WriteLine("7. Salir");
+            Console.WriteLine("7. Ver libros más prestados");
+            Console.WriteLine("8. Salir");
             Console.Write("\nSeleccione una opción: ");
 
             var opcion = Console.ReadLine();
@@ -56,6 +57,9 @@ public class ConsoleUI
                     await VerLibrosDisponiblesAsync();
                     break;
                 case "7":
+                    MostrarLibrosMasPrestados();
+                    break;
+                case "8":
                     salir = true;
                     break;
                 default:
@@ -289,6 +293,39 @@ public class ConsoleUI
             Console.WriteLine($"   ISBN: {libro.ISBN}");
             Console.WriteLine($"   Copias disponibles: {copias}");
             Console.WriteLine();
+        }
+    }
+    public static void MostrarLibrosMasPrestados()
+    {
+        using var contexto = new BibliotecaContext();
+
+        var top5 = contexto.Libros
+            .Select(l => new
+            {
+                l.ISBN,
+                l.Titulo,
+                l.Autor,
+                CantidadPrestamos = l.Prestamos.Count()
+            })
+            .OrderByDescending(x => x.CantidadPrestamos)
+            .Take(5)
+            .ToList();
+
+        Console.WriteLine();
+        Console.WriteLine("=== TOP 5 LIBROS MÁS PRESTADOS ===");
+
+        if (top5.Count == 0)
+        {
+            Console.WriteLine("No hay préstamos registrados.");
+            return;
+        }
+
+        int puesto = 1;
+        foreach (var libro in top5)
+        {
+            Console.WriteLine($"{puesto}. [{libro.ISBN}] {libro.Titulo} - {libro.Autor} " +
+                               $"=> {libro.CantidadPrestamos} préstamo(s)");
+            puesto++;
         }
     }
 }
