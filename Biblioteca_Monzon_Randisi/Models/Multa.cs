@@ -9,5 +9,7 @@ public class Multa
     [ForeignKey(nameof(Socio))]
     public int SocioId { get; set; }
     public int Valor { get; set; }
+
+    public string Estado { get; set; } = "Pendiente";
     public virtual Socio Socio { get; set; } = null!;
 }

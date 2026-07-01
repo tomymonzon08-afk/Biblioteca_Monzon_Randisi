@@ -31,7 +31,8 @@ public class ConsoleUI
             Console.WriteLine("5. Ver información de socio");
             Console.WriteLine("6. Ver libros disponibles");
             Console.WriteLine("7. Ver libros más prestados");
-            Console.WriteLine("8. Salir");
+            Console.WriteLine("8. Mostrar socios con multas pendientes");
+            Console.WriteLine("9. Salir");
             Console.Write("\nSeleccione una opción: ");
 
             var opcion = Console.ReadLine();
@@ -60,6 +61,10 @@ public class ConsoleUI
                     MostrarLibrosMasPrestados();
                     break;
                 case "8":
+                    MostrarSociosConMultasPendientes();
+                    break;
+
+                case "11":
                     salir = true;
                     break;
                 default:
@@ -327,5 +332,39 @@ public class ConsoleUI
                                $"=> {libro.CantidadPrestamos} préstamo(s)");
             puesto++;
         }
+    }
+    public static void MostrarSociosConMultasPendientes()
+    {
+        using var contexto = new BibliotecaContext();
+
+        var socios = contexto.Multas
+            .Include(m => m.Socio)
+            .Where(m => m.Estado == "Pendiente")
+            .Select(m => new
+            {
+                m.Socio.NroSocio,
+                m.Socio.Nombre,
+                m.Socio.Apellido,
+                Monto = m.Valor
+            })
+            .OrderByDescending(x => x.Monto)
+            .ToList();
+        Console.Clear();
+        Console.WriteLine();
+        Console.WriteLine("=== SOCIOS CON MULTAS PENDIENTES ===");
+
+        if (socios.Count == 0)
+        {
+            Console.WriteLine("No hay socios con multas pendientes.");
+            return;
+        }
+
+        foreach (var s in socios)
+        {
+            Console.WriteLine($"Socio N° {s.NroSocio} - {s.Nombre} {s.Apellido} " +
+                               $"=> Monto adeudado: ${s.Monto}");
+        }
+
+        Console.WriteLine($"Total adeudado entre todos los socios: ${socios.Sum(s => s.Monto)}");
     }
 }
