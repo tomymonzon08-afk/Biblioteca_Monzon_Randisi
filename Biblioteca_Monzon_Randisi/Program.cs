@@ -10,8 +10,6 @@ class Program
     static async Task Main(string[] args)
     {
         using var context = new BibliotecaContext();
-        
-        await context.Database.EnsureCreatedAsync();
 
         var service = new BibliotecaService(context);
         var ui = new ConsoleUI(service, context);
